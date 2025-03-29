@@ -5,34 +5,21 @@
     },
     "scripts": {
         "Example Script 1": {
-            "path": "C:\\ExampleFolder\\ExampleScript.py",
-            "args": [
-                "arg1",
-                "arg2"
-            ]
+            "path": "C:\\Users\\nicol\\OneDrive\\Documents\\Github-Projects\\Python_Script_Launcher\\tests\\test.py"
         },
+
         "Example Script 2": {
-            "path": "C:\\ExampleFolder\\ExampleScript.py",
-            "args": [
-                "arg1",
-                "arg2"
-            ]
+            "path": "C:\\Users\\nicol\\OneDrive\\Documents\\Github-Projects\\Python_Script_Launcher\\tests\\test2.py"
         },
         "Example Script 3": {
             "path": "C:\\ExampleFolder\\ExampleScript.py",
-            "args": [
-                "arg1",
-                "arg2"
-            ]
+            "args": ["arg1", "arg2"]
         },
         "Example Script No Args": {
             "path": "C:\\ExampleFolder\\ExampleScript.py"
         },
         "Example Script No Path": {
-            "args": [
-                "arg1",
-                "arg2"
-            ]
+            "args": ["arg1", "arg2"]
         },
         "Example Script No Path No Args": {}
     }

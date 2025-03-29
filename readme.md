@@ -15,6 +15,9 @@ The Python Script Launcher is a graphical tool designed to streamline the proces
 -   Configurable row limit for buttons via `config.json`.
 -   Detailed logging of application events and errors to `debug.log`.
 -   **"Always on Top"** toggle option to keep the launcher window above other windows. This option is saved when the toggle is adjusted.
+-   **Stop Process Button** to terminate any running subprocess directly from the interface. Button is deactivated until a script is running.
+-   Built-in support for running scripts with or without arguments.
+-   Added support for automatically checking the theme of the system and applying it to the Launcher.
 
 ## Usage (Source Version)
 
@@ -54,6 +57,7 @@ The Python Script Launcher is a graphical tool designed to streamline the proces
 3. **Use the Interface**:
     - Select a script from the graphical interface and click the corresponding button to execute it.
     - Use the **"Always on Top"** checkbox to toggle whether the launcher window stays above other windows.
+    - Use the **Stop Process** button to terminate any running subprocess.
 
 ## Usage (Built Version)
 
@@ -88,6 +92,7 @@ The Python Script Launcher is a graphical tool designed to streamline the proces
 3. **Use the Interface**:
     - Select a script from the graphical interface and click the corresponding button to execute it.
     - Use the **"Always on Top"** checkbox to toggle whether the launcher window stays above other windows.
+    - Use the **Stop Process** button to terminate any running subprocess.
 
 ## Configuration
 
@@ -142,7 +147,7 @@ The `config.json` file is used to define the scripts and settings available in t
 ## Known Issues
 
 -   No support for older versions of Python.
--   Scripts without a valid `path` key in `config.json` will not be executed.
+-   Not an issue, but a note: Scripts without a valid `path` in `config.json` will not be executed.
 
 ## Building the Executable
 
@@ -151,32 +156,33 @@ To build the executable version of the launcher:
 ### Windows:
 
 1. Install `PyInstaller`:
-    
+
 ```bash
 pip install pyinstaller
 ```
-    
+
 2. Run the following command in the project directory:
-    
+
 ```bash
 pyinstaller --onefile --noconsole src/__init__.py --name=python_script_launcher --add-data "src/assets/*:assets"
 ```
-    
+
 3. The built executable will be located in the `dist` directory.
+
 ### Mac OS:
 
 1. Install `PyInstaller`:
-    
+
 ```bash
 pip install pyinstaller
 ```
-    
+
 2. Run the following command in the project directory:
-    
+
 ```bash
 pyinstaller --onefile --windowed src/__init__.py --name=python_script_launcher --add-data "src/assets/*:assets"
 ```
-    
+
 3. The built executable will be located in the `dist` directory.
 
 ## Troubleshooting

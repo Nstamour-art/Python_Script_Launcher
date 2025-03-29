@@ -77,23 +77,19 @@ def launch_app(command_dict: dict) -> None:
             # Check the platform and launch the application accordingly
             if sys.platform == "win32":
                 # Launch the application using subprocess
-                PROCESS = subprocess.Popen(["python", cmd], shell=True)
+                prcss = subprocess.Popen(["python", cmd], shell=True)
+                PROCESS = True
+                if prcss
             elif sys.platform == "linux":
                 # Launch the application using subprocess
-                PROCESS = subprocess.Popen(["python3", cmd], shell=True)
+                subprocess.Popen(["python3", cmd], shell=True)
+                PROCESS = True
             elif sys.platform == "darwin":
                 # Launch the application using subprocess
-                PROCESS = subprocess.Popen(["python3", cmd], shell=True)
+                subprocess.Popen(["python3", cmd], shell=True)
+                PROCESS = True
             else:
                 logger.error(f"Unsupported platform: {sys.platform}")
-                return
-            # Wait for the process to complete
-            PROCESS.wait()
-            # Check if the process was successful
-            if PROCESS.returncode == 0:
-                logger.info(f"Successfully launched the application: {script_path}")
-            else:
-                logger.error(f"Failed to launch the application: {script_path}")
                 return
         else:
             logger.error(f"Error: The script '{script_path}' does not exist.")
