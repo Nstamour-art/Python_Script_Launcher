@@ -340,46 +340,51 @@ def create_window(scripts_dict: dict) -> None:
     # Set the button size and padding params to use to calculate the window size
     button_width = max(len(key) for key in scripts_dict.keys()) * 10
 
-    # Initialize row and column indices
-    row_index = 0
-    column_index = 0
     root.resizable(False, False)
     root.attributes("-topmost", ALWAYS)
 
-    master_frame = ttk.Frame(root)
-    master_frame.pack(padx=20, pady=10, fill="x")
+    notebook_frame = ttk.Notebook(root)
+    notebook_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+
+    # Create the frames for the tabs
+    master_frame = ttk.Frame(notebook_frame)
+    settings_frame = ttk.Frame(notebook_frame)
+
+    # Add the frames as tabs to the notebook
+    notebook_frame.add(master_frame, text="Scripts")
+    notebook_frame.add(settings_frame, text="Settings")
 
     # Create a label for the title
     title_label = ttk.Label(master_frame, text="Script Launcher", font=("Arial", 18))
-    title_label.pack(padx=10, pady=10)
+    title_label.grid(row=0, column=0, padx=10, pady=10, sticky="n")
 
     # Create a frame for the buttons
     button_frame = ttk.Frame(master_frame)
-    button_frame.pack()
+    button_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-    # Create buttons based on the scripts_dict
-    for button_title, command_dict in scripts_dict.items():
-        create_button(
-            row_index,
-            column_index,
-            button_frame,
-            button_title,
-            command_dict,
-            int(button_width / 10),
-        )
-        row_index += 1
-        column_index += 1 if row_index >= ROW_LIMIT else 0
-        # Reset row index if it exceeds 4
-        if row_index == ROW_LIMIT:
-            row_index = 0
+    def update_layout():
+        """
+        Updates the layout of buttons based on the current ROW_LIMIT.
+        """
+        for widget in button_frame.winfo_children():
+            widget.destroy()  # Clear existing buttons
 
-    # Add a separator line
-    separator = ttk.Separator(master_frame, orient="horizontal")
-    separator.pack(fill="x", padx=20, pady=10)
-
-    # Create a frame to align the settings label and stop button horizontally
-    settings_frame = ttk.Frame(master_frame)
-    settings_frame.pack(fill="x", padx=20, pady=10)
+        # Create buttons based on the scripts_dict
+        row_index = 0
+        column_index = 0
+        for button_title, command_dict in scripts_dict.items():
+            create_button(
+                row_index,
+                column_index,
+                button_frame,
+                button_title,
+                command_dict,
+                int(button_width / 10),
+            )
+            row_index += 1
+            column_index += 1 if row_index >= ROW_LIMIT else 0
+            if row_index == ROW_LIMIT:
+                row_index = 0
 
     # Define the function to toggle the "Always on Top" attribute
     def toggle_always_on_top():
@@ -394,19 +399,76 @@ def create_window(scripts_dict: dict) -> None:
                 ALWAYS = False
                 write_config(script_dir, "ALWAYS", ALWAYS)
 
-    # Create a checkbox for "Always on-top"
+    # Define the settings section
+    # Add a frame for the settings tab
+    section_frame = ttk.Frame(settings_frame)
+    section_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+    # Configure the settings_frame to expand and fill the window
+    settings_frame.grid_rowconfigure(0, weight=1)
+    settings_frame.grid_columnconfigure(0, weight=1)
+
+    # Configure the section_frame to expand and fill the window and set weights
+    section_frame.grid_rowconfigure(0, weight=0)
+    section_frame.grid_rowconfigure(1, weight=0)
+    section_frame.grid_rowconfigure(2, weight=0)
+    section_frame.grid_rowconfigure(3, weight=0)
+    section_frame.grid_rowconfigure(4, weight=0)
+    section_frame.grid_columnconfigure(0, weight=1)
+    section_frame.grid_columnconfigure(1, weight=1)
+    section_frame.grid_columnconfigure(2, weight=1)
+
+    # Create a label for the settings tab
+    settings_label = ttk.Label(section_frame, text="Settings", font=("Arial", 18))
+    settings_label.grid(row=0, column=0, padx=10, pady=10, sticky="n", columnspan=3)
+
+    # Create a checkbox for "Always on Top"
     always_on_top_var = ttk.IntVar(value=1 if ALWAYS else 0)
     always_on_top_checkbox = ttk.Checkbutton(
-        settings_frame,
+        section_frame,
         text="Always on Top",
         variable=always_on_top_var,
         command=toggle_always_on_top,
     )
-    always_on_top_checkbox.pack(in_=settings_frame, side="left", anchor="w")
+    always_on_top_checkbox.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+
+    # Add a section to change the number of rows
+    row_limit_frame = ttk.Frame(section_frame)
+    row_limit_frame.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+
+    row_limit_label = ttk.Label(row_limit_frame, text="Number of Rows:")
+    row_limit_label.grid(row=0, column=0, sticky="w")
+
+    row_limit_var = ttk.IntVar(value=ROW_LIMIT)
+
+    def update_row_limit():
+        """
+        Updates the ROW_LIMIT value, saves it to the config, and refreshes the layout.
+        """
+        global ROW_LIMIT
+        new_row_limit = row_limit_var.get()
+        if new_row_limit > 0:  # Ensure the value is valid
+            ROW_LIMIT = new_row_limit
+            write_config(script_dir, "ROW_LIMIT", ROW_LIMIT)
+            update_layout()
+
+    row_limit_spinbox = ttk.Spinbox(
+        row_limit_frame,
+        from_=3,
+        to=10,
+        textvariable=row_limit_var,
+        command=update_row_limit,
+        width=5,
+        state="readonly",
+    )
+    row_limit_spinbox.grid(row=0, column=1, padx=5, sticky="w")
 
     # Add bottom padding to the window
     bottom_padding = ttk.Frame(root)
-    bottom_padding.pack(pady=10)
+    bottom_padding.grid(row=1, column=0, pady=10, sticky="s")
+
+    # Trigger the initial layout update
+    update_layout()
 
     root.mainloop()
 

@@ -147,3 +147,5 @@ TypeError: system() takes at most 1 argument (2 given)
 2025-03-30 12:17:37 - 86 - launch_app - [ERROR] - Error: The script 'C:\ExampleFolder\ExampleScript.py' does not exist.
 2025-03-30 12:17:38 - 163 - check_dict - [ERROR] - Error: Command dictionary does not contain 'path' key.
 2025-03-30 12:17:38 - 163 - check_dict - [ERROR] - Error: Command dictionary does not contain 'path' key.
+2025-03-30 18:04:16 - 69 - launch_app - [DEBUG] - Launching the application: C:\Users\nicol\OneDrive\Documents\Github-Projects\Python_Script_Launcher\tests\test2.py
+2025-03-30 18:04:16 - 70 - launch_app - [DEBUG] - Command: C:\Users\nicol\OneDrive\Documents\Github-Projects\Python_Script_Launcher\tests\test2.py
