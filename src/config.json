@@ -16,7 +16,7 @@
             "args": ["arg1", "arg2"]
         },
         "Example Script No Args": {
-            "path": "C:\\ExampleFolder\\ExampleScript.py"
+            "path": "C:/ExampleFolder/ExampleScript.py"
         },
         "Example Script No Path": {
             "args": ["arg1", "arg2"]

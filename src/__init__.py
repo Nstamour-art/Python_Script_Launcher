@@ -5,15 +5,13 @@ import json
 import subprocess
 import logging
 import platform
-import threading
 from ttkbootstrap import *
 import ttkbootstrap as ttk
 
 # Constants
-ROW_LIMIT = 4  # Maximum number of rows for buttons in the window
-PROCESS = subprocess.Popen  # Global variable to store the launched process
-ALWAYS = False  # Default value for "Always on Top" setting
-PROCESS_MAP = {}  # Dictionary to store button-to-process mapping
+ROW_LIMIT = 4
+PROCESS = subprocess.Popen
+ALWAYS = False
 
 
 def create_logger() -> logging.Logger:
@@ -37,90 +35,58 @@ def create_logger() -> logging.Logger:
 
 def launch_app(command_dict: dict, button: ttk.Button) -> None:
     """
-    Launches the specified application in a new thread and updates the button to "Stop Script" while the script is running.
+    Launches the specified application in a new terminal window.
     """
+    try:
+        # Check if the command is a dictionary
+        if not check_dict(command_dict):
+            return
 
-    def run_script():
-        try:
-            # Check if the command is a dictionary
-            if not check_dict(command_dict):
-                return
-
-            # Get the script path and arguments
-            script_path = command_dict.get("path")
-            if not check_path_format(script_path):
-                return
-            if command_dict.get("args"):
-                args = command_dict.get("args")
-                if isinstance(args, list):
-                    args = " ".join(args)
-                else:
-                    args = str(args)
-                cmd = f"{script_path} {args}"
+        # Get the script path and arguments
+        script_path = command_dict.get("path", None)
+        if not script_path:
+            logger.error(f'Error: The script "path" is missing in the Config.')
+            return
+        if not check_path_format(script_path):
+            return
+        if command_dict.get("args"):
+            args = command_dict.get("args")
+            if isinstance(args, list):
+                args = " ".join(args)
             else:
-                cmd = script_path
+                args = str(args)
+            cmd = f"{script_path} {args}"
+        else:
+            cmd = script_path
 
-            # Check if the script is a Python script
-            if not script_path.endswith(".py"):
-                logger.error("Error: The script is not a Python script.")
-                return
+        # Check if the script is a Python script
+        if not script_path.endswith(".py"):
+            logger.error("Error: The script is not a Python script.")
+            return
 
-            # Check if the script exists
-            if os.path.exists(script_path):
-                logger.debug(f"Launching the application: {script_path}")
-                logger.debug(f"Command: {cmd}")
+        # Check if the script exists
+        if os.path.exists(script_path):
+            logger.debug(f"Launching the application: {script_path}")
+            logger.debug(f"Command: {cmd}")
 
-                # Check the platform and launch the application accordingly
-                if sys.platform == "win32":
-                    process = subprocess.Popen(["python", cmd], shell=True)
-                elif sys.platform in ["linux", "darwin"]:
-                    process = subprocess.Popen(["python3", cmd], shell=True)
-                else:
-                    logger.error(f"Unsupported platform: {sys.platform}")
-                    return
-
-                # Store the process in the PROCESS_MAP
-                PROCESS_MAP[button] = process
-
-                # Update the button to "Stop Script"
-                button["text"] = "Stop Script"
-                button["command"] = lambda: stop_script(button)
-
-                # Wait for the process to complete
-                process.wait()
+            # Open the script in a new terminal window
+            if sys.platform == "win32":
+                os.system(f'start cmd /k "timeout /t 1 >nul & python {cmd}"')
+            elif sys.platform in ["linux", "darwin"]:
+                os.system(
+                    f'gnome-terminal -- bash -c "sleep 1; python3 {cmd}; exec bash"'
+                )  # Linux/macOS
             else:
-                logger.error(f"Error: The script '{script_path}' does not exist.")
+                logger.error(f"Unsupported platform: {sys.platform}")
                 return
-        except Exception as e:
-            logger.exception(f"Error launching the application: {e}")
-        finally:
-            # Reset the button's text and command after the process completes
-            button["text"] = command_dict.get("title", "Run Script")
-            button["command"] = lambda: launch_app(command_dict, button)
-            if button in PROCESS_MAP:
-                del PROCESS_MAP[button]
-
-    # Start the thread without disabling the button
-    thread = threading.Thread(target=run_script)
-    thread.start()
+        else:
+            logger.error(f"Error: The script '{script_path}' does not exist.")
+            return
+    except Exception as e:
+        logger.exception(f"Error launching the application: {e}")
 
 
-def stop_script(button: ttk.Button) -> None:
-    """
-    Stops the running script associated with the given button.
-    """
-    if button in PROCESS_MAP:
-        process = PROCESS_MAP[button]
-        if process.poll() is None:  # Check if the process is still running
-            logger.info(f"Terminating the process for button: {button['text']}")
-            process.terminate()
-        # Reset the button's text and command
-        button["text"] = "Run Script"
-        button["command"] = lambda: launch_app(command_dict, button)
-        del PROCESS_MAP[button]
-
-
-def check_path_format(path_str) -> bool:
+def check_path_format(path_str: str) -> bool:
     """
     Checks the provided path to see if it's compatible for the current OS.
     Parameters:
@@ -202,7 +168,7 @@ def check_dict(command_dict: dict) -> bool:
     return True
 
 
-def load_data_config(dir_str) -> dict:
+def load_data_config(dir_str: str) -> dict:
     """
     Loads the configuration data from the config.json file.
     The config.json file should be located in the specified directory.
@@ -223,7 +189,7 @@ def load_data_config(dir_str) -> dict:
         return {}
 
 
-def write_config(dir_str, key, value) -> None:
+def write_config(dir_str: str, key: str, value) -> None:
     """
     Writes the configuration data to the config.json file.
     The config.json file should be located in the specified directory.
@@ -414,41 +380,6 @@ def create_window(scripts_dict: dict) -> None:
     # Create a frame to align the settings label and stop button horizontally
     settings_frame = ttk.Frame(master_frame)
     settings_frame.pack(fill="x", padx=20, pady=10)
-
-    # Add a button to quit the running subprocess
-    stop_button = ttk.Button(
-        settings_frame,
-        text="Stop Process",
-        command=lambda: [
-            logger.info("Terminating the running subprocess"),
-            (
-                PROCESS.terminate()
-                if "process" in globals() and PROCESS.poll() is None
-                else logger.info("No subprocess to terminate")
-            ),
-        ],
-    )
-
-    # Disable the stop button initially
-    stop_button["state"] = "disabled"
-
-    # Update the stop button state when a process is running
-    def update_stop_button_state():
-        if "process" in globals() and PROCESS and PROCESS.poll() is None:
-            stop_button["state"] = "normal"
-        else:
-            stop_button["state"] = "disabled"
-
-    # Periodically check the process state and update the button
-    def monitor_process():
-        update_stop_button_state()
-        root.after(1000, monitor_process)
-
-    # Start monitoring the process state
-    monitor_process()
-
-    # Pack the settings label and stop button in the same frame
-    stop_button.pack(in_=settings_frame, side="right", anchor="e")
 
     # Define the function to toggle the "Always on Top" attribute
     def toggle_always_on_top():
